@@ -8,8 +8,8 @@ class Form extends Component {
         this.inputOpenFileRef = React.createRef()
         
         this.state = {
-            postName: '',
-            postDescription: '',
+            postName: props.name ? props.name : '',
+            postDescription: props.description ? props.description : '',
             postThumbnail: null
         }
     }
@@ -21,11 +21,11 @@ class Form extends Component {
     render() {
         return (
             <form method={this.props.method} autoComplete="off" className="form">
-                <h2>Create New Post</h2>
+                <h2>{this.props.method === 'post' ? 'Create New Post' : 'Edit Post'}</h2>
                 <label>Post Name:</label>
-                <input type="text" name="postName" onChange={ (event) => this.setState({postName: event.target.value}) }/>
+                <input type="text" name="postName" value={this.state.postName} onChange={ (event) => this.setState({postName: event.target.value}) }/>
                 <label>Post Description:</label>
-                <input type="text" name="postDescription" onChange={ (event) => this.setState({postDescription: event.target.value}) }/>
+                <input type="text" name="postDescription" value={this.state.postDescription} onChange={ (event) => this.setState({postDescription: event.target.value}) }/>
                 <label>Post Thumbnail:</label>
                 <FcAddImage onClick={ this.openFileInput } className="form__image-icon"/>
                 <input type="file" ref={this.inputOpenFileRef} name="postThumbnail" hidden onChange={ (event) => this.setState({postThumbnail: event.target.files[0]}) }/>
@@ -37,7 +37,7 @@ class Form extends Component {
                 <button 
                     type="button" 
                     onClick={() => this.props.onSubmit(this.state.postName, this.state.postDescription, this.state.postThumbnail) }>
-                Create New Post</button>
+                {this.props.method === 'post' ? 'Create New Post' : 'Edit Post'}</button>
             </form>
         );
     }

@@ -67,10 +67,10 @@
     }
 
     .delete {
-        color: rgb(212, 53, 53);
+        color: $color-red;
 
         &:hover {
-            color: rgb(161, 32, 32);
+            color: $color-red-dark;
         }
     }
 }

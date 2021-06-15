@@ -10,7 +10,7 @@ const post = (props) => {
         <div className="post">
             <div className="post__icons">
                 <BiPin className="post__icon pin" onClick={props.pin}/>
-                <AiFillEdit className="post__icon edit" onClick={() => console.log('Edit')}/>
+                <AiFillEdit className="post__icon edit" onClick={props.edit}/>
                 <RiDeleteBin6Fill className="post__icon delete" onClick={props.delete}/>
             </div>
             <h3 className="post__name">{props.name}</h3>

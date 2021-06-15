@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Form from '../../components/Form/Form';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import * as actionTypes from '../../store/actions';
 
 import { app } from '../../firebase.utils';
 import axios from '../../axios';
@@ -18,10 +17,20 @@ class Home extends Component {
         isUploadSuccessful: false
     }
 
+    /**
+     * Functions that sets isUploadSuccessful
+     * to false and closes modal
+    */
     modalCloseHandler = () => {
         this.setState({ isUploadSuccessful: false });
     }
 
+    /**
+     * Function that sends post to database when form is submitted
+     * @param {String} name - post name
+     * @param {String} description - post description
+     * @param {File} thumbnail - post thumbnail
+    */
     onFormSubmit = async (name, description, thumbnail) => {
         if(name && description && thumbnail) {
             if(thumbnail.type.startsWith('image/')) {
@@ -38,19 +47,9 @@ class Home extends Component {
                     preview: fileUrl
                 }
                 
-                // this.props.addNewPost(newPostData);
                 axios.post('/posts.json', newPostData)
                 .then(response => {
                     console.log(response);
-
-                    const newPostData = {
-                        name: name,
-                        description: description,
-                        preview: fileUrl,
-                        id: response.data.name
-                    }
-
-                    this.props.addNewPost(newPostData);
                     this.setState({ isLoading: false });
                     this.setState({ isUploadSuccessful: true });
                 })
@@ -90,10 +89,4 @@ const mapStateToProps = (state) => {
     }
 }
 
-const mapDispatchToProps = dispatch => {
-    return {
-        addNewPost: (post) => dispatch({type: actionTypes.NEW, post: post})
-    };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps)(Home);

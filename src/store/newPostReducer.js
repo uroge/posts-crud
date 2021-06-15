@@ -6,13 +6,19 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
-        case actionTypes.NEW:
+        case actionTypes.GET:
             return {
                 ...state,
-                posts: [...state.posts, action.post]
+                posts: [...action.posts]
             };
         
         case actionTypes.DELETE:
+            return {
+                ...state,
+                posts: [...action.posts]
+            }
+
+        case actionTypes.EDIT:
             return {
                 ...state,
                 posts: [...action.posts]
