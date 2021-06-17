@@ -9,7 +9,7 @@ const post = (props) => {
     return(
         <div className="post">
             <div className="post__icons">
-                <BiPin className="post__icon pin" onClick={props.pin}/>
+                <BiPin className="post__icon pin" style={props.pinned ? {opacity: 1} : ''} onClick={props.pin}/>
                 <AiFillEdit className="post__icon edit" onClick={props.edit}/>
                 <RiDeleteBin6Fill className="post__icon delete" onClick={props.delete}/>
             </div>

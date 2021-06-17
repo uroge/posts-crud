@@ -10,6 +10,7 @@ import Post from '../../components/Post/Post';
 import Modal from '../../components/Modal/Modal';
 import Form from '../../components/Form/Form';
 import Loader from '../../components/Loader/Loader';
+import Backdrop from '../../components/Backdrop/Backdrop';
 
 import '../../sass/pages/allPosts.scss';
 
@@ -39,6 +40,14 @@ class AllPosts extends Component {
     }
 
     /**
+     * Function that sets showForm to false
+     * and closes form when backdrop is clicked
+    */
+    editFormClosed = () => {
+        this.setState({ showForm: false });
+    }
+
+    /**
      * Function that sends GET request to firebase database,
      * and pushes data into redux store
     */
@@ -52,6 +61,19 @@ class AllPosts extends Component {
                 }
 
                 this.props.addPosts(posts);
+            }
+        })
+        .catch(error => console.log(error));
+
+        axios.get('https://posts-crud-9a799-default-rtdb.firebaseio.com/pinned-posts.json')
+        .then(response => {
+            if(response.data) {
+                const posts = [];
+                for (let key in response.data) {
+                    posts.push({ ...response.data[key], id: key });
+                }
+
+                this.props.addPinnedPosts(posts);
             }
         })
         .catch(error => console.log(error));
@@ -71,12 +93,67 @@ class AllPosts extends Component {
         .catch(error => console.log(error));
     }
 
-    pinPostHandler = () => {
-        console.log(this.props.posts);
+    /**
+     * Function that deletes specific pinnedPost that is clicked on
+     * @param {String} id - id of a post to delete
+    */
+    deletePinnedPostHandler = (id) => {
+        axios.delete(`https://posts-crud-9a799-default-rtdb.firebaseio.com/pinned-posts/${id}.json`)
+        .then(response => {
+            const pinnedPostsAfterDeleting = this.props.pinnedPosts.filter(pinnedPost => pinnedPost.id !== id);
+
+            this.props.deletePinnedPost(pinnedPostsAfterDeleting);
+        })
+        .catch(error => console.log(error));
     }
 
     /**
-     * 
+     * Function that passes post to pinPost function and
+     * pushes post to the pinnedPosts array in the store,
+     * and moves post to pinned-posts table in database
+     * @param {Object} post - post that should be pinned
+    */
+    pinPostHandler = async (post) => {
+        const oldRef = app.database().ref(`posts/${post.id}`);
+        const newRef = app.database().ref(`pinned-posts/${post.id}`);
+
+        try {
+          const snap = await oldRef.once('value');
+          await newRef.set(snap.val());
+          await oldRef.set(null);
+          console.log('Done!');
+        } catch(err) {
+             console.log(err.message);
+        }
+
+        this.props.pinPost(post);
+    }
+
+    /**
+     * Function that passes post to pinPost function and
+     * pushes post to the pinnedPosts array in the store,
+     * and moves post to posts table in database
+     * @param {Object} post - post that should be pinned
+    */
+    unpinPostHandler = async (post) => {
+        const oldRef = app.database().ref(`pinned-posts/${post.id}`);
+        const newRef = app.database().ref(`posts/${post.id}`);
+
+        try {
+          const snap = await oldRef.once('value');
+          await newRef.set(snap.val());
+          await oldRef.set(null);
+          console.log('Done!');
+        } catch(err) {
+             console.log(err.message);
+        }
+
+        this.props.unpinPost(post);
+    }
+
+    /**
+     * Function that sets new values of post that
+     * should be edited
      * @param {Object} post - post that is being edited
     */
     editPostHandler = (post) => {
@@ -113,7 +190,6 @@ class AllPosts extends Component {
                 
                 axios.patch(`/posts/${this.state.id}.json`, newPostData)
                 .then(response => {
-                    console.log(response.data);
                     const postsAfterEditing = this.props.posts.filter(post => post.id !== this.state.id);
                     const posts = [...postsAfterEditing, response.data];
 
@@ -138,16 +214,31 @@ class AllPosts extends Component {
 
     render() {
         let postsList = null;
+        let pinnedPostsList = null;
 
-        if(this.props.posts) {
-            postsList = this.props.posts.map(post => {
+        if(this.props.pinnedPosts) {
+            pinnedPostsList = this.props.pinnedPosts.map(post => {
                 return <Post 
                 key={Math.random()} 
                 name={post.name} 
                 description={post.description} 
                 thumbnail={post.preview}
+                delete={() => this.deletePinnedPostHandler(post.id)}
+                pin={() => this.unpinPostHandler(post)}
+                edit={() => this.editPostHandler(post)}
+                pinned={true} />
+            });
+        }
+
+        if(this.props.posts) {
+            postsList = this.props.posts.map(post => {
+                return <Post
+                key={Math.random()}
+                name={post.name}
+                description={post.description}
+                thumbnail={post.preview}
                 delete={() => this.deletePostHandler(post.id)}
-                pin={this.pinPostHandler}
+                pin={() => this.pinPostHandler(post)}
                 edit={() => this.editPostHandler(post)} />
             });
         }
@@ -157,6 +248,7 @@ class AllPosts extends Component {
                 <h1>All Posts</h1>
                 { this.state.isLoading ? <Loader /> : null }
                 <div className="all-posts__list" >
+                    { pinnedPostsList }
                     { postsList }
                 </div>
                 { this.state.isModalOpened ? 
@@ -166,7 +258,11 @@ class AllPosts extends Component {
                 </Modal> : null }
 
                 { this.state.showForm ? 
-                <Form method="patch" name={this.state.name} description={this.state.description} onSubmit={this.onFormSubmit} /> : null }
+                <div>
+                    <Backdrop clicked={this.editFormClosed} />
+                    <Form method="patch" name={this.state.name} description={this.state.description} onSubmit={this.onFormSubmit} />
+                </div>
+                 : null }
                 <Link to="/" className="all-posts__link">Make New Post</Link>
             </div>
         );
@@ -175,15 +271,20 @@ class AllPosts extends Component {
 
 const mapStateToProps = (state) => {
     return {
-        posts: state.posts
+        posts: state.posts,
+        pinnedPosts: state.pinnedPosts
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
         deletePost: (posts) => dispatch({type: actionTypes.DELETE, posts: posts}),
+        deletePinnedPost: (pinnedPosts) => dispatch({type: actionTypes.DELETE_PINNED, pinnedPosts: pinnedPosts}),
         addPosts: (posts) => dispatch({type: actionTypes.GET, posts: posts}),
-        editPosts: (posts) => dispatch({type: actionTypes.EDIT, posts: posts})
+        editPosts: (posts) => dispatch({type: actionTypes.EDIT, posts: posts}),
+        pinPost: (post) => dispatch({type: actionTypes.PIN, post: post}),
+        unpinPost: (post) => dispatch({type: actionTypes.UNPIN, post: post}),
+        addPinnedPosts: (pinnedPosts) => dispatch({type: actionTypes.GET_PINNED, pinnedPosts: pinnedPosts})
     };
 };
 

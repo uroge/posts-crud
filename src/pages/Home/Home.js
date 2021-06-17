@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 
 import { app } from '../../firebase.utils';
 import axios from '../../axios';
-
+import { Redirect } from 'react-router-dom';
 import '../../sass/pages/home.scss';
 
 import Loader from '../../components/Loader/Loader';
@@ -14,7 +14,8 @@ import Modal from '../../components/Modal/Modal';
 class Home extends Component {
     state = {
         isLoading: false,
-        isUploadSuccessful: false
+        isUploadSuccessful: false,
+        redirect: false
     }
 
     /**
@@ -22,7 +23,7 @@ class Home extends Component {
      * to false and closes modal
     */
     modalCloseHandler = () => {
-        this.setState({ isUploadSuccessful: false });
+        this.setState({ isUploadSuccessful: false, redirect: true });
     }
 
     /**
@@ -49,7 +50,6 @@ class Home extends Component {
                 
                 axios.post('/posts.json', newPostData)
                 .then(response => {
-                    console.log(response);
                     this.setState({ isLoading: false });
                     this.setState({ isUploadSuccessful: true });
                 })
@@ -75,6 +75,7 @@ class Home extends Component {
                 { this.state.isUploadSuccessful ? <Modal show={this.state.isUploadSuccessful} modalClosed={this.modalCloseHandler}>
                     You've successfully created a new Post
                 </Modal> : null }
+                { this.state.redirect ? <Redirect from="/" to="/all-posts" /> : null }
                 { this.state.isLoading ? <Loader /> : null}
                 <Form method="post" onSubmit={ this.onFormSubmit } isUploadSuccessful={this.state.isUploadSuccessful}/>
                 <Link to="/all-posts" className="home__link">See All Posts</Link>

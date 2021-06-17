@@ -26,6 +26,7 @@
         border: 2px solid $color-secondary;
         border-radius: 10px;
         position: relative;
+        z-index: 200;
     }
 
     &__btn {
