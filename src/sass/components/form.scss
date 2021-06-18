@@ -1,7 +1,6 @@
 @import "../base/variables";
 
 .form {
-    margin-top: 2rem;
     display: flex;
     flex-direction: column;
     width: 40%;
@@ -16,7 +15,7 @@
     position: absolute;
     top: 0%;
     left: 50%;
-    transform: translate(-50%, 50%);
+    transform: translate(-50%, 45%);
     z-index: 1;
 
     h2 {
@@ -71,10 +70,16 @@
     }
 
     &__image {
-        padding: 5rem;
+        padding: 4rem;
         background-position: center;
         background-size: cover;
         background-repeat: no-repeat;
         margin-bottom: 2rem;
+        border-radius: 3px;
+        transition: all .3s ease-in-out;
+
+        &:hover {
+            opacity: .7;
+        }
     }
 }

@@ -72,12 +72,11 @@ class Home extends Component {
         return (
             <div className="home">
                 <h1>Posts</h1>
-                { this.state.isUploadSuccessful ? <Modal show={this.state.isUploadSuccessful} modalClosed={this.modalCloseHandler}>
-                    You've successfully created a new Post
-                </Modal> : null }
+                { this.state.isUploadSuccessful ? <Modal show={ this.state.isUploadSuccessful } modalClosed={ this.modalCloseHandler } success={ true }/>
+                : null }
                 { this.state.redirect ? <Redirect from="/" to="/all-posts" /> : null }
-                { this.state.isLoading ? <Loader /> : null}
-                <Form method="post" onSubmit={ this.onFormSubmit } isUploadSuccessful={this.state.isUploadSuccessful}/>
+                { this.state.isLoading ? <Loader /> : null }
+                <Form method="post" onSubmit={ this.onFormSubmit } isUploadSuccessful={ this.state.isUploadSuccessful } />
                 <Link to="/all-posts" className="home__link">See All Posts</Link>
             </div>
         );

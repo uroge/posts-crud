@@ -17,14 +17,15 @@ import '../../sass/pages/allPosts.scss';
 class AllPosts extends Component {
     state = {
         isDeleting: false,
-        isModalOpened: false,
+        isEditSucessfull: false,
         showForm: false,
         name: '',
         description: '',
         preview: null,
         id: '',
         isLoading: false,
-        isUploadSuccesfull: false
+        isPostBeingDeleted: false,
+        deletedPostId: null
     }
     
     componentDidMount() {
@@ -36,7 +37,8 @@ class AllPosts extends Component {
      * and closes modal
     */
     modalCloseHandler = () => {
-        this.setState({ isUploadSuccessful: false });
+        this.setState({ isEditSucessfull: false });
+        this.setState({ isPostBeingDeleted: false });
     }
 
     /**
@@ -89,6 +91,8 @@ class AllPosts extends Component {
             const postsAfterDeleting = this.props.posts.filter(post => post.id !== id);
 
             this.props.deletePost(postsAfterDeleting);
+            this.setState({ isPostBeingDeleted: false });
+            console.log(id);
         })
         .catch(error => console.log(error));
     }
@@ -103,6 +107,8 @@ class AllPosts extends Component {
             const pinnedPostsAfterDeleting = this.props.pinnedPosts.filter(pinnedPost => pinnedPost.id !== id);
 
             this.props.deletePinnedPost(pinnedPostsAfterDeleting);
+            this.setState({ isPostBeingDeleted: false });
+            console.log(id);
         })
         .catch(error => console.log(error));
     }
@@ -196,6 +202,7 @@ class AllPosts extends Component {
                     this.props.editPosts(posts);
                     this.setState({ isLoading: false });
                     this.setState({ showForm: false });
+                    this.setState({ isEditSucessfull: true })
                 })
                 .catch(error => console.log(error));
             } else {
@@ -215,6 +222,15 @@ class AllPosts extends Component {
     render() {
         let postsList = null;
         let pinnedPostsList = null;
+        let modal = null;
+
+        if(this.state.isEditSucessfull) {
+            modal = <Modal modalClosed={ this.modalCloseHandler } edit={true}/>;
+        }
+
+        if(this.state.isPostBeingDeleted) {
+            modal = <Modal modalClosed={ this.modalCloseHandler } delete={true} deletePost={() => this.deletePostHandler(this.state.deletedPostId)} />;
+        }
 
         if(this.props.pinnedPosts) {
             pinnedPostsList = this.props.pinnedPosts.map(post => {
@@ -237,7 +253,9 @@ class AllPosts extends Component {
                 name={post.name}
                 description={post.description}
                 thumbnail={post.preview}
-                delete={() => this.deletePostHandler(post.id)}
+                delete={() => {
+                    this.setState({isPostBeingDeleted: true, deletedPostId: post.id});
+                }}
                 pin={() => this.pinPostHandler(post)}
                 edit={() => this.editPostHandler(post)} />
             });
@@ -251,11 +269,7 @@ class AllPosts extends Component {
                     { pinnedPostsList }
                     { postsList }
                 </div>
-                { this.state.isModalOpened ? 
-                <Modal modalClosed={this.modalCloseHandler}>
-                    You have successfully edited post
-                    {/* <button className="all-posts__delete">Delete</button> */}
-                </Modal> : null }
+                { modal }
 
                 { this.state.showForm ? 
                 <div>
