@@ -25,6 +25,7 @@ class AllPosts extends Component {
         id: '',
         isLoading: false,
         isPostBeingDeleted: false,
+        isPinnedPostBeingDeleted: false,
         deletedPostId: null
     }
     
@@ -107,7 +108,7 @@ class AllPosts extends Component {
             const pinnedPostsAfterDeleting = this.props.pinnedPosts.filter(pinnedPost => pinnedPost.id !== id);
 
             this.props.deletePinnedPost(pinnedPostsAfterDeleting);
-            this.setState({ isPostBeingDeleted: false });
+            this.setState({ isPinnedPostBeingDeleted: false });
             console.log(id);
         })
         .catch(error => console.log(error));
@@ -127,7 +128,6 @@ class AllPosts extends Component {
           const snap = await oldRef.once('value');
           await newRef.set(snap.val());
           await oldRef.set(null);
-          console.log('Done!');
         } catch(err) {
              console.log(err.message);
         }
@@ -149,7 +149,6 @@ class AllPosts extends Component {
           const snap = await oldRef.once('value');
           await newRef.set(snap.val());
           await oldRef.set(null);
-          console.log('Done!');
         } catch(err) {
              console.log(err.message);
         }
@@ -232,6 +231,10 @@ class AllPosts extends Component {
             modal = <Modal modalClosed={ this.modalCloseHandler } delete={true} deletePost={() => this.deletePostHandler(this.state.deletedPostId)} />;
         }
 
+        if(this.state.isPinnedPostBeingDeleted) {
+            modal = <Modal modalClosed={ this.modalCloseHandler } delete={true} deletePost={() => this.deletePinnedPostHandler(this.state.deletedPostId)} />;
+        }
+
         if(this.props.pinnedPosts) {
             pinnedPostsList = this.props.pinnedPosts.map(post => {
                 return <Post 
@@ -239,7 +242,10 @@ class AllPosts extends Component {
                 name={post.name} 
                 description={post.description} 
                 thumbnail={post.preview}
-                delete={() => this.deletePinnedPostHandler(post.id)}
+                // delete={() => this.deletePinnedPostHandler(post.id)}
+                delete={() => {
+                    this.setState({isPinnedPostBeingDeleted: true, deletedPostId: post.id});
+                }}
                 pin={() => this.unpinPostHandler(post)}
                 edit={() => this.editPostHandler(post)}
                 pinned={true} />
